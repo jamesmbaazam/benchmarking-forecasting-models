@@ -1,0 +1,106 @@
+---
+title: "Your Paper Title Here"
+format:
+  pdf:
+    include-in-header:
+      text: |
+        \usepackage{lineno}
+        \linenumbers
+author:
+  - name: Your Name
+    affiliation: Your Institution
+    email: your.email@institution.edu
+date: today
+abstract: |
+  This is where you write your abstract. Keep it concise (typically 150-300 words).
+  Summarize your research question, methods, key findings, and conclusions.
+bibliography: references.bib
+---
+
+# Introduction
+
+Your introduction goes here. Cite sources using `[@citation_key]` for parenthetical citations or `@citation_key` for in-text citations [@example2024].
+
+You can reference equations like @eq-example, figures like @fig-example, and tables like @tbl-example.
+
+## Research Question
+
+State your research question or hypothesis here.
+
+# Methods
+
+Describe your methodology here.
+
+## Data
+
+Describe your data sources and collection methods.
+
+## Analysis
+
+You can include R code chunks to perform analysis:
+
+```{r}
+#| label: fig-example
+#| fig-cap: "Example figure caption"
+#| echo: false
+
+# Example R code
+x <- 1:10
+y <- x^2
+plot(x, y, main="Example Plot", xlab="X values", ylab="Y values")
+```
+
+You can also include equations:
+
+$$
+y = \beta_0 + \beta_1 x + \epsilon
+$$ {#eq-example}
+
+# Results
+
+Present your findings here.
+
+```{r}
+#| label: tbl-example
+#| tbl-cap: "Example table caption"
+#| echo: false
+
+# Example table
+knitr::kable(data.frame(
+  Variable = c("X", "Y", "Z"),
+  Mean = c(1.5, 2.3, 3.1),
+  SD = c(0.5, 0.7, 0.6)
+))
+```
+
+# Discussion
+
+Interpret your results and discuss implications.
+
+## Limitations
+
+Discuss limitations of your study.
+
+## Future Work
+
+Suggest directions for future research.
+
+# Conclusion
+
+Summarize your key findings and their significance.
+
+# References
+
+::: {#refs}
+:::
+
+# Appendix {.appendix}
+
+## Computational Environment
+
+```{r}
+#| label: session-info
+#| echo: false
+
+sessionInfo()
+```
