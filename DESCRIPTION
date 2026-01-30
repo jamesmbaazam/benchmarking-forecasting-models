@@ -2,7 +2,7 @@ Package: papertemplate
 Type: Project
 Title: Exploring the trade-off between speed and performance of forecasting models
 Version: 0.0.1
-Authors@R: c(person("James", "Mba Azam", role = c("aut", "cre")),
+Authors@R: c(person("James", "Mba Azam", email = "james.azam@lshtm.ac.uk", role = c("aut", "cre")),
              person("Sam", "Abbott", role = "aut"),
              person("Sebastian", "Funk", role = "aut"))
 Description: Research project exploring the trade-off between speed and performance of forecasting models.
