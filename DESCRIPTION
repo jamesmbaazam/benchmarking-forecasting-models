@@ -1,12 +1,11 @@
 Package: papertemplate
 Type: Project
-Title: Academic Paper Template
+Title: Exploring the trade-off between speed and performance of forecasting models
 Version: 0.0.1
-Authors@R: person("James", "Azam", role = c("aut", "cre"))
-Description: A focused, user-friendly template for reproducible research using
-    R with Quarto. Provides a clean starting point for academic papers with
-    strong reproducibility guarantees through R version pinning, dependency
-    locking, and automated workflows.
+Authors@R: c(person("James", "Mba Azam", role = c("aut", "cre")),
+             person("Sam", "Abbott", role = "aut"),
+             person("Sebastian", "Funk", role = "aut"))
+Description: Research project exploring the trade-off between speed and performance of forecasting models.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
