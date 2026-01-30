@@ -1,4 +1,4 @@
-# [Your Paper Title Here]
+# Exploring the trade-off between speed and performance of forecasting models
 
 <!-- Replace the title above with your paper's actual title -->
 
@@ -8,9 +8,9 @@
 
 <!-- Replace with your author list. Add or remove authors as needed -->
 
-- **First Author Name** - Institution Name, email@institution.edu
-- **Second Author Name** - Institution Name, email@institution.edu
-- **Third Author Name** - Institution Name, email@institution.edu
+- **James Mba Azam**
+- **Sam Abbott**
+- **Sebastian Funk**
 
 ## Abstract
 

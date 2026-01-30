@@ -1,5 +1,5 @@
 ---
-title: "Your Paper Title Here"
+title: "Exploring the trade-off between speed and performance of forecasting models"
 format:
   pdf:
     include-in-header:
@@ -7,9 +7,9 @@ format:
         \usepackage{lineno}
         \linenumbers
 author:
-  - name: Your Name
-    affiliation: Your Institution
-    email: your.email@institution.edu
+  - name: James Mba Azam
+  - name: Sam Abbott
+  - name: Sebastian Funk
 date: today
 abstract: |
   This is where you write your abstract. Keep it concise (typically 150-300 words).
