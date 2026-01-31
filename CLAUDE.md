@@ -128,3 +128,13 @@ When refactoring or adding new analysis code, adhere to these patterns:
 - **Figures**: Save as `.png` using `ggsave` in `output/figures/`.
 - **Metrics**: Save as `.rds` in `data/processed/`.
 - **Quarto**: Use `knitr::include_graphics()` for plots. Do not run heavy analysis in `.qmd` chunks.
+
+### 7. Automated Environment Management
+- Use a marker file (e.g., `.Rprofile`) to track the state of the R environment.
+- Automate environment builds via Make by making the marker file depend on the installation script:
+  ```makefile
+  RENV := .Rprofile
+  $(RENV): scripts/R/install.R
+      Rscript --vanilla $^
+  ```
+- This ensures that any update to `install.R` automatically triggers an environment refresh during the next `make` call.

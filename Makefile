@@ -29,6 +29,13 @@ clean:
 # Analysis Pipeline
 # ============================================================================
 
+RENV := .Rprofile
+
+# build renv/library & other renv infrastructure
+$(RENV): scripts/R/install.R
+	@echo "Building R environment..."
+	Rscript --vanilla $^
+
 # Define outputs for each step
 SIM_DATA := data/processed/simulated_data.rds
 TRAJ_PLOT := output/figures/combined_traj_plot.png
@@ -121,5 +128,4 @@ render: paper/index.qmd $(ANALYSIS_OUTPUTS) $(TRAJ_PLOT) $(MODEL_DESC_TABLE)
 	quarto render paper/index.qmd
 
 # Install dependencies
-install:
-	Rscript -e "renv::restore()"
+install: $(RENV)
