@@ -103,16 +103,28 @@ When refactoring or adding new analysis code, adhere to these patterns:
 - Use representative targets (e.g., `ANALYSIS_METRICS`) for steps producing multiple files.
 - Ensure strict dependency declaration (e.g., plotting targets depend on analysis targets).
 
-### 3. Intermediate State Persistence
+### 3. Dual-Mode Execution & Robust Paths
+- Scripts must support both interactive debugging and CLI execution:
+  ```r
+  args <- if (interactive()) {
+    c(file.path("data", "processed", "input.rds"), file.path("output", "figures", "plot.png"))
+  } else {
+    commandArgs(trailingOnly = TRUE)
+  }
+  ```
+- Always use `file.path()` for constructing paths to ensure cross-platform compatibility.
+- Use `tail(args, 1)` for the output path to align with Makefile recipes.
+
+### 4. Intermediate State Persistence
 - Use `.rds` files to pass data between steps (`data/processed/`).
 - plotting scripts should *read* processed data, not re-compute it.
 - This decoupling allows lightweight plotting without loading heavy libraries (e.g., `stan`, `EpiNow2`).
 
-### 4. Centralized Logic
+### 5. Centralized Logic
 - Place reusable logic (CRPS calculations, themes) in `scripts/R/functions.R`.
 - Use a global plotting theme (e.g., `get_plot_theme()`) for visual consistency.
 
-### 5. Output Management
+### 6. Output Management
 - **Figures**: Save as `.png` using `ggsave` in `output/figures/`.
-- **Tables**: Save as `.rds` (for `kable` in Quarto) or `.csv` in `output/tables/`.
-- **Quarto**: Use `knitr::include_graphics()` for plots and `readRDS()` for tables. Do not run heavy analysis in `.qmd` chunks.
+- **Metrics**: Save as `.rds` in `data/processed/`.
+- **Quarto**: Use `knitr::include_graphics()` for plots. Do not run heavy analysis in `.qmd` chunks.
