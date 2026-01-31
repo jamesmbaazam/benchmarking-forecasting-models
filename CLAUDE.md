@@ -83,3 +83,58 @@ See `REPRODUCIBILITY.md` for:
 - `INSTRUCTIONS.md` - Template setup guide with installation and usage instructions
 - `REPRODUCIBILITY.md` - Reproducibility best practices
 - `data/README.md` - Data documentation template
+
+## Coding Standards & Workflow
+
+When refactoring or adding new analysis code, adhere to these patterns:
+
+### 1. Modularity (One-Script, One-Task)
+- Avoid monolithic scripts. Split workflows into granular steps:
+  - **Data Generation**: `01_simulate_data.R` (Saves `.rds`)
+  - **Data Plotting**: `01_plot_simulated_data.R` (Reads `.rds`, saves `.png`)
+  - **Model Definitions**: `02_define_models.R`
+  - **Execution**: `03_run_models.R` (Computationally intensive)
+  - **Analysis**: `04_compute_metrics.R` (Metrics & Tables)
+  - **Plotting**: `05_plot_*.R` (One script per figure group)
+
+### 2. Make-Driven Workflow
+- The `Makefile` is the source of truth for the project state.
+- Define specific targets for every output artifact.
+- Use representative targets (e.g., `ANALYSIS_METRICS`) for steps producing multiple files.
+- Ensure strict dependency declaration (e.g., plotting targets depend on analysis targets).
+
+### 3. Dual-Mode Execution & Robust Paths
+- Scripts must support both interactive debugging and CLI execution:
+  ```r
+  args <- if (interactive()) {
+    c(file.path("data", "processed", "input.rds"), file.path("output", "figures", "plot.png"))
+  } else {
+    commandArgs(trailingOnly = TRUE)
+  }
+  ```
+- Always use `file.path()` for constructing paths to ensure cross-platform compatibility.
+- Use `tail(args, 1)` for the output path to align with Makefile recipes.
+
+### 4. Intermediate State Persistence
+- Use `.rds` files to pass data between steps (`data/processed/`).
+- plotting scripts should *read* processed data, not re-compute it.
+- This decoupling allows lightweight plotting without loading heavy libraries (e.g., `stan`, `EpiNow2`).
+
+### 5. Centralized Logic
+- Place reusable logic (CRPS calculations, themes) in `scripts/R/functions.R`.
+- Use a global plotting theme (e.g., `get_plot_theme()`) for visual consistency.
+
+### 6. Output Management
+- **Figures**: Save as `.png` using `ggsave` in `output/figures/`.
+- **Metrics**: Save as `.rds` in `data/processed/`.
+- **Quarto**: Use `knitr::include_graphics()` for plots. Do not run heavy analysis in `.qmd` chunks.
+
+### 7. Automated Environment Management
+- Use a marker file (e.g., `.Rprofile`) to track the state of the R environment.
+- Automate environment builds via Make by making the marker file depend on the installation script:
+  ```makefile
+  RENV := .Rprofile
+  $(RENV): scripts/R/install.R
+      Rscript --vanilla $^
+  ```
+- This ensures that any update to `install.R` automatically triggers an environment refresh during the next `make` call.
