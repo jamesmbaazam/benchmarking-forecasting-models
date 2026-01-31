@@ -14,9 +14,13 @@
 
 ## Abstract
 
-<!-- Replace with your abstract. Typically 150-300 words summarizing your research question, methods, key findings, and conclusions -->
+Real-time estimation of the time-varying reproduction number ($R_t$) and short-term case forecasting are critical for informing public health responses during infectious disease outbreaks. However, sophisticated semi-mechanistic Bayesian models often present a trade-off between computational efficiency and predictive accuracy. 
 
-[Your abstract text here. Summarize: (1) the research problem, (2) your approach/methods, (3) key findings, and (4) main conclusions or implications.]
+We evaluated the performance of four model configurations within the `{EpiNow2}` R package: the default non-stationary prior, a non-mechanistic model, a 7-day random walk, and a stationary prior ("non-residual"). Using simulated epidemic data capturing growth, peak, and decline phases, we benchmarked these models based on runtime and the Continuous Ranked Probability Score (CRPS) for both $R_t$ nowcasting and 7-day infection forecasting. 
+
+Our analysis reveals significant trade-offs between speed and performance. The non-mechanistic approach was the fastest and achieved the lowest CRPS for $R_t$ estimation but performed poorly for infection forecasting. The stationary prior model demonstrated the most consistent accuracy across epidemic phases but required the longest runtimes. The 7-day random walk model offered a balanced compromise, delivering competitive infection forecasts with moderate computational demands. 
+
+No single model configuration outperforms others across all metrics. We recommend that users select model specifications based on their primary objective—prioritizing non-mechanistic approaches for rapid $R_t$ estimation and random-walk or stationary priors when accurate case forecasting is paramount.
 
 ## Prerequisites
 
