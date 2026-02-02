@@ -12,95 +12,155 @@ author:
   - name: Sebastian Funk
 date: today
 abstract: |
-  This is where you write your abstract. Keep it concise (typically 150-300 words).
-  Summarize your research question, methods, key findings, and conclusions.
+  Real-time estimation of the time-varying reproduction number ($R_t$) and short-term case forecasting are critical for informing public health responses during infectious disease outbreaks. However, sophisticated semi-mechanistic Bayesian models often present a trade-off between computational efficiency and predictive accuracy. We evaluated the performance of four model configurations within the `{EpiNow2}` R package: the default non-stationary prior, a non-mechanistic model, a 7-day random walk, and a stationary prior ("non-residual"). Using simulated epidemic data capturing growth, peak, and decline phases, we benchmarked these models based on runtime and the Continuous Ranked Probability Score (CRPS) for both $R_t$ nowcasting and 7-day infection forecasting. Our analysis reveals significant trade-offs between speed and performance. The non-mechanistic approach was the fastest and achieved the lowest CRPS for $R_t$ estimation but performed poorly for infection forecasting. The stationary prior model demonstrated the most consistent accuracy across epidemic phases but required the longest runtimes. The 7-day random walk model offered a balanced compromise, delivering competitive infection forecasts with moderate computational demands. No single model configuration outperforms others across all metrics. We recommend that users select model specifications based on their primary objective—prioritizing non-mechanistic approaches for rapid $R_t$ estimation and random-walk or stationary priors when accurate case forecasting is paramount.
 bibliography: references.bib
 ---
 
-# Introduction
-
-Your introduction goes here. Cite sources using `[@citation_key]` for parenthetical citations or `@citation_key` for in-text citations [@example2024].
-
-You can reference equations like @eq-example, figures like @fig-example, and tables like @tbl-example.
-
-## Research Question
-
-State your research question or hypothesis here.
-
-# Methods
-
-Describe your methodology here.
-
-## Data
-
-Describe your data sources and collection methods.
-
-## Analysis
-
-You can include R code chunks to perform analysis:
-
-```{r}
-#| label: fig-example
-#| fig-cap: "Example figure caption"
-#| echo: false
-
-# Example R code
-x <- 1:10
-y <- x^2
-plot(x, y, main="Example Plot", xlab="X values", ylab="Y values")
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  fig.width = 8,
+  fig.height = 6
+)
+library(ggplot2)
+library(patchwork)
+library(knitr)
 ```
 
-You can also include equations:
+In using `{EpiNow2}`, users will often need to balance between achieving fast model runs and good forecast and nowcast performance. `{EpiNow2}` provides a range of customisations of the default model to suit these decision points.
 
-$$
-y = \beta_0 + \beta_1 x + \epsilon
-$$ {#eq-example}
+The aim of this paper is to show the trade-offs between select model customisations in terms of model speed/run times and nowcasting and real-time forecasting. We will explore four (4) `{EpiNow2}` model options, including the default model. The models, chosen to cover typical use cases, are customisations of the default prior on how $R_t$ is generated over time.
 
-# Results
+We will evaluate how well the models perform when fitted with the [MCMC sampling algorithm](https://mc-stan.org/docs/reference-manual/mcmc.html) in stan because MCMC is the state-of-the-art algorithm for fitting these kinds of models.
 
-Present your findings here.
+# Data
 
-```{r}
-#| label: tbl-example
-#| tbl-cap: "Example table caption"
-#| echo: false
+To compare the models, we will simulate an epidemic with waves capturing the growth, peak, and decline phase. We will then extract subsets of the data capturing the three phases for use as scenarios. All the models will be fit to the three phases and evaluated.
 
-# Example table
-knitr::kable(data.frame(
-  Variable = c("X", "Y", "Z"),
-  Mean = c(1.5, 2.3, 3.1),
-  SD = c(0.5, 0.7, 0.6)
-))
+Below is the simulated data with dotted lines showing the chosen growth, peak, and decline phase in infections. We use the second wave because we want to have enough data to fit/train the models. The chosen dates also represent the scenarios that the models will be fit to and evaluated.
+
+```{r plot-true-data}
+knitr::include_graphics("output/figures/combined_traj_plot.png")
 ```
 
-# Discussion
+Let's proceed to define the models, fit them to the true data, and evaluate their performance.
 
-Interpret your results and discuss implications.
+# Models
 
-## Limitations
+## Descriptions
 
-Discuss limitations of your study.
+Below we describe each model.
 
-## Future Work
+```{r model-descriptions}
+knitr::kable(readRDS("output/tables/model_descriptions.rds"), caption = "Model descriptions")
+```
 
-Suggest directions for future research.
+## Running the models
 
-# Conclusion
+We ran the models using snapshots of the true infections data representing the last 10 weeks and including the growth, peak, and decline phase of the second wave.
 
-Summarize your key findings and their significance.
+# Evaluating model performance
 
-# References
+We will now evaluate the models.
 
-::: {#refs}
-:::
+## Run times (computational resources)
 
-# Appendix {.appendix}
+Let's see how long each model took to run using MCMC.
 
-## Computational Environment
+```{r process-runtimes}
+knitr::include_graphics("output/figures/timing_plot.png")
+```
 
-```{r}
-#| label: session-info
-#| echo: false
+We can see that the default model is the slowest in all data scenarios. On the other hand, the non-mechanistic model is the fastest, followed by the 7-day random walk model, and the non-residual model. Let's see how the model run times compare with forecasting and nowcasting performance.
 
-sessionInfo()
+## Evaluating model performance
+
+We will use the [continuous ranked probability score (CRPS)](https://en.wikipedia.org/wiki/Scoring_rule#Continuous_ranked_probability_score). CRPS is a [proper scoring rule](https://en.wikipedia.org/wiki/Scoring_rule#Propriety_and_consistency) that measures the accuracy of probabilistic forecasts. When comparing models, the smaller the CRPS, the better.
+
+We will evaluate model runtimes versus overall performance out-of-sample, i.e., total CRPS for $R_t$ and infections in the forecasting window. Additionally, for $R_t$, we'll evaluate the nowcast value, i.e., the estimate of $R_t$ before the forecast horizon, and for infections, we will compare the 7-day forecast as a measure of real-time performance.
+
+### Overall model performance
+
+Let's compare the overall/aggregated out-of-sample (forecast horizon) performance of the models in terms of the total CRPS for $R_t$ and infections compared with model run times.
+
+In the figure below, we show the model runtimes compared to the total performance in forecasting $R_t$, grouped by the three epidemic phases. Ideal models would be in the bottom left corner, i.e., fast and with low CRPS.
+
+```{r calc-total-crps}
+knitr::include_graphics("output/figures/rt_total_crps_plot.png")
+```
+
+Below, we show the model run times versus total performance in forecasting infections, grouped by the three epidemic phases. Ideal models would be in the bottom left corner, i.e., fast and with low CRPS.
+
+```{r crps-plotting-infections-total}
+knitr::include_graphics("output/figures/infections_total_crps_plot.png")
+```
+
+### Nowcast $R_t$ estimates
+
+Let's now compare the performance of the models in terms of nowcast estimates of $R_t$, i.e., the estimate of $R_t$ in `horizon = -1` by epidemic phase. Ideal models would be in the bottom left corner, i.e., fast and with low CRPS.
+
+```{r plot-rt-nowcast-crps}
+knitr::include_graphics("output/figures/rt_now_comparison_plot.png")
+```
+
+### Real-time infection forecast
+
+Let's also see the real-time performance of the models in estimating infections by epidemic phase compared with model run times. Ideal models would be in the bottom left corner, i.e., fast and with low CRPS.
+
+```{r plot-infections-real-time-crps}
+knitr::include_graphics("output/figures/infections_real_time_comparison_plot.png")
+```
+
+As can be seen in the summaries above, each model has its strengths and weaknessess and a balance needs to be struck.
+
+We will now discuss the considerations and recommendations for choosing an appropriate model based on the results of these benchmarks and experience with using the models in practice.
+
+# Considerations and recommendations for choosing an appropriate model
+
+## Changing default stan controls
+
+Users can consider changing the default stan options set in `stan_opts()`. Exercise caution here and observe the number of [divergences](https://mc-stan.org/docs/reference-manual/mcmc.html#divergent-transitions), [effective sample size (ESS)](https://mc-stan.org/docs/reference-manual/analysis.html#estimation-of-effective-sample-size), and [Rhat](https://mc-stan.org/posterior/reference/rhat.html) to ensure that the model is converging well. The following are some options for changing stan controls:
+
+- Improve between-chain parallelisation by setting the number of cores using `stan_opts(cores = parallel::detectCores())`, which by default is set to 1. You can also set it in the `options(mc.cores = parallel::detectCores())` function to set it globally.
+- Increase the step size by decreasing adapt_delta, e.g. from 0.99 to 0.8 (set `stan_opts(control = list(adapt_delta = 0.8))`).
+- Reduce max_treedepth: e.g. from 12 to 10 or 8 (set `stan_opts(control = list(max_treedepth = 10))`).
+
+## Non-mechanistic versus mechanistic models
+
+Estimation in `{EpiNow2}` using the semi-mechanistic approaches (putting a prior on $R_t$) is often much slower than the non-mechanistic approach (seeting `rt = NULL``). The mechanistic model is slower because it models aspects of the processes and mechanisms that drive $R_t$ estimates using the renewal equation. The non-mechanistic model, on the other hand, runs much faster but does not use the renewal equation to generate infections. Because of this none of the options defining the behaviour of the reproduction number are available in this case, limiting its flexibility.
+
+## Faster fitting non-MCMC algorithms but experimental and unstable
+
+The default sampling method, set through `stan_opts()`, performs [MCMC sampling](https://en.wikipedia.org/wiki/Markov_chain_Monte_Carlo) using [`{rstan}`](https://cran.r-project.org/web/packages/rstan/vignettes/rstan.html). The MCMC sampling method is accurate but is often slow. `{EpiNow2}` also provides the option to run three (3) other algorithms that approximate MCMC: [Automatic Differentiation Variational Inference](https://mc-stan.org/docs/cmdstan-guide/variational_config.html), [Pathfinder method](https://mc-stan.org/docs/cmdstan-guide/pathfinder_config.html), and [Laplace sampling](https://mc-stan.org/docs/cmdstan-guide/laplace_sample_config.html) (set using `stan_opts(method = "laplace", backend = "cmdstanr)`). These methods are much faster because they are approximate (See, for example, a detailed explanation for [automatic variational inference in Stan](https://arxiv.org/abs/1506.03431)). They are, however, currently experimental and unstable, and more research is needed to understand under what conditions they excel and fail. We, therefore, only recommend users to use the MCMC sampler.
+
+In `{EpiNow2}`, you can use variational inference with the `{rstan}` or [`{cmdstanr}`](https://mc-stan.org/cmdstanr/) backend but you must [install `{cmdstanr}`](https://mc-stan.org/cmdstanr/index.html#installation) to access its functionalities. You can set `stan_opts(method = "vb")`, which will use the `{rstan}` backend or `stan_opts(method = "vb", backend = "cmdstanr")`. Additionally, `{EpiNow2}` supports using the [Laplace algorithm](https://mc-stan.org/docs/cmdstan-guide/laplace_sample_config.html) (which you can set using `stan_opts(method = "laplace", backend = "cmdstanr")`), and [Pathfinder algorithm](https://mc-stan.org/docs/cmdstan-guide/pathfinder_config.html) (which you can set using `stan_opts(method = "pathfinder", backend = "cmdstanr")`) through the `{cmdstanr}` R package.
+
+The non-mcmc methods can be used in various ways. First, you can initialise the MCMC sampling algorithm with the fit object returned by methods such as [pathfinder](https://mc-stan.org/docs/reference-manual/pathfinder.html#using-pathfinder-for-initializing-mcmc). More details can be found in the original [pathfinder paper](https://arxiv.org/abs/2108.03782). This approach speeds up the initialisation phase of the MCMC algorithm. Second, the non-mcmc methods are also great for prototyping. For example, if you are testing out a pipeline setup, it might be more practical to switch to a method like variational bayes and only use MCMC when the pipeline is up and running.
+
+## Faster competitive models at cost of smoothness/granularity of estimates
+
+The random walk model is much faster than the default model and is competitive in all tasks and data scenarios. However, choosing it comes at a cost of reduced smoothness/granularity of the estimates, compared to the other methods.
+
+## Caveats of this exercise
+
+We generated the data using an arbitrary `R` trajectory. The models were also only fit to one time point. Ideally, they would be fit to multiple time windows. This experiment therefore represents only one of many data and time point scenarios that the models can be benchmarked against.
+
+The run times measured here use a crude method that compares the start and end times of each simulation. It only measures the time taken for one model run and may not be accurate. For more accurate run time measurements, we recommend using a more sophisticated approach like those provided by packages like [`{bench}`](https://cran.r-project.org/web/packages/bench/index.html) and [`{microbenchmark}`](https://cran.r-project.org/web/packages/microbenchmark/index.html).
+
+Lastly, we used `r parallel::detectCores() - 1` cores for between-chain parallelisation, and so using more or fewer cores might change the run time results.
+
+# Results appendix {#results-appendix}
+
+## Model performance over time
+
+Let's see how the $R_t$ and infections CRPS changed over time.
+
+```{r plot-rt-crps-mcmc}
+knitr::include_graphics("output/figures/rt_crps_plot.png")
+```
+
+```{r plot-infections-crps-mcmc}
+knitr::include_graphics("output/figures/infections_crps_plot.png")
 ```
