@@ -17,10 +17,13 @@ if (file.exists(".Rversion")) {
   }
 }
 
-# Activate renv for dependency management (if initialized)
-if (file.exists("renv/activate.R")) {
-  source("renv/activate.R")
-}
+# Activate renv for dependency management
+stopifnot("Must have `renv` installed." = require(renv))
+
+renv::activate()
+res <- renv::restore(prompt = FALSE)
+
+print(res)
 
 # Set CRAN mirror
 options(repos = c(CRAN = "https://cloud.r-project.org"))
@@ -33,10 +36,10 @@ options(mc.cores = max(1L, parallel::detectCores(logical = FALSE) - 1L, na.rm = 
 # options(ggplot2.discrete.fill = "viridis")
 
 # Display startup message
-if (interactive()) {
-  message("Paper template project loaded")
-  message("R version: ", R.version.string)
-  if (requireNamespace("renv", quietly = TRUE)) {
-    message("renv version: ", packageVersion("renv"))
-  }
-}
+# if (interactive()) {
+#   message("Paper template project loaded")
+#   message("R version: ", R.version.string)
+#   if (requireNamespace("renv", quietly = TRUE)) {
+#     message("renv version: ", packageVersion("renv"))
+#   }
+# }
